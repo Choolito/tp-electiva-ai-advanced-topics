@@ -1,0 +1,116 @@
+@startuml
+' UML/ER with crow's foot style
+!theme plain
+hide methods
+hide stereotypes
+left to right direction
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+}
+
+entity PERSONA {
+  *id : int <<PK>>
+  nombre : text
+  apellido : text
+  doc_tipo : text
+  doc_num : text
+  tel : text
+  email : text
+}
+
+entity HABITACION {
+  *id : int <<PK>>
+  numero : text <<UNIQUE>>
+  piso : int
+  tipo : text
+  capacidad : int
+  estado : text <<DEFAULT 'activa'>>
+  frigobar : bool
+  jacuzzi : bool
+  balcon : bool
+  precio : numeric
+}
+
+entity RESERVA {
+  *id : int <<PK>>
+  titular_persona_id : int <<FK PERSONA.id>>
+  fecha_checkin : date
+  fecha_checkout : date
+  estado : text <<DEFAULT 'pendiente'>>
+  canal : text
+  observaciones : text
+}
+
+entity RESERVA_HABITACION {
+  *id : int <<PK>>
+  reserva_id : int <<FK RESERVA.id>>
+  habitacion_id : int <<FK HABITACION.id>>
+  precio_noche_acordado : numeric
+  notas : text
+  UNIQUE(reserva_id, habitacion_id)
+}
+
+entity RESERVA_HABITACION_PERSONA {
+  *id : int <<PK>>
+  reserva_habitacion_id : int <<FK RESERVA_HABITACION.id>>
+  persona_id : int <<FK PERSONA.id>>
+  UNIQUE(reserva_habitacion_id, persona_id)
+}
+
+entity PLATO {
+  *id : int <<PK>>
+  nombre : text
+  descripcion : text
+  precio : numeric
+  activo : bool <<DEFAULT TRUE>>
+}
+
+entity GUARNICION {
+  *id : int <<PK>>
+  nombre : text
+  precio : numeric
+  activa : bool <<DEFAULT TRUE>>
+}
+
+entity PEDIDO {
+  *id : int <<PK>>
+  fecha_hora : timestamp <<DEFAULT now()>>
+  origen_tipo : text  -- mesa/habitación
+  mesa : text <<NULL>>
+  reserva_habitacion_id : int <<FK RESERVA_HABITACION.id, NULL>>
+  estado : text  -- abierto/en_preparacion/listo/entregado/cobrado/cancelado
+  observaciones : text
+}
+
+entity PEDIDO_ITEM {
+  *id : int <<PK>>
+  pedido_id : int <<FK PEDIDO.id>>
+  plato_id : int <<FK PLATO.id, NULL>>
+  guarnicion_id : int <<FK GUARNICION.id, NULL>>
+  cantidad : int
+  precio_plato : numeric
+  precio_guarnicion : numeric
+  comentario : text
+}
+
+entity INSUMO {
+  *id : int <<PK>>
+  nombre : text
+  unidad : text
+  stock_min : numeric
+}
+
+' Relationships (crow's foot)
+PERSONA ||--o{ RESERVA : "titular"
+RESERVA ||--o{ RESERVA_HABITACION
+HABITACION ||--o{ RESERVA_HABITACION
+RESERVA_HABITACION ||--o{ RESERVA_HABITACION_PERSONA
+PERSONA ||--o{ RESERVA_HABITACION_PERSONA
+RESERVA_HABITACION ||--o{ PEDIDO
+PEDIDO ||--o{ PEDIDO_ITEM
+PLATO ||--o{ PEDIDO_ITEM
+GUARNICION ||--o{ PEDIDO_ITEM : "opcional"
+
+@enduml
