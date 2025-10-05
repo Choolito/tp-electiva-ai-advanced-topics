@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'nl_sql_agent',
+    'hotel',
 ]
 
 MIDDLEWARE = [

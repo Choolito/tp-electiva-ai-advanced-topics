@@ -1,0 +1,33 @@
+[
+  {"model": "hotel.persona", "pk": 1, "fields": {
+    "nombre": "Ana", "apellido": "García", "doc_tipo": "DNI", "doc_num": "11111111",
+    "tel": "341-1234567", "email": "ana@example.com"
+  }},
+  {"model": "hotel.persona", "pk": 2, "fields": {
+    "nombre": "Luis", "apellido": "Pérez", "doc_tipo": "DNI", "doc_num": "22222222",
+    "tel": "341-7654321", "email": "luis@example.com"
+  }},
+  {"model": "hotel.habitacion", "pk": 1, "fields": {
+    "numero": "101", "piso": 1, "tipo": "doble", "capacidad": 2,
+    "estado": "activa", "frigobar": true, "jacuzzi": false, "balcon": false, "precio": "18000.00"
+  }},
+  {"model": "hotel.habitacion", "pk": 2, "fields": {
+    "numero": "102", "piso": 1, "tipo": "simple", "capacidad": 1,
+    "estado": "activa", "frigobar": false, "jacuzzi": false, "balcon": false, "precio": "12000.00"
+  }},
+  {"model": "hotel.habitacion", "pk": 3, "fields": {
+    "numero": "201", "piso": 2, "tipo": "doble", "capacidad": 2,
+    "estado": "activa", "frigobar": true, "jacuzzi": true, "balcon": true, "precio": "25000.00"
+  }},
+  {"model": "hotel.reserva", "pk": 1, "fields": {
+    "titular_persona": 1, "fecha_checkin": "2025-10-06", "fecha_checkout": "2025-10-08",
+    "estado": "confirmada", "canal": "web", "observaciones": ""
+  }},
+  {"model": "hotel.reserva", "pk": 2, "fields": {
+    "titular_persona": 2, "fecha_checkin": "2025-10-10", "fecha_checkout": "2025-10-12",
+    "estado": "pendiente", "canal": "whatsapp", "observaciones": ""
+  }},
+  {"model": "hotel.reservahabitacion", "pk": 1, "fields": {
+    "reserva": 1, "habitacion": 1
+  }}
+]
