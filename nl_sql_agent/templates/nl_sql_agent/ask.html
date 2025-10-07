@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Agente NL→SQL (Gemini)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; }
+    textarea { width: 100%; height: 120px; }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 6px 8px; }
+    code { background: #f3f3f3; padding: 2px 4px; }
+    .error { color: #b00020; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Agente NL→SQL</h1>
+  <form method="post">
+    {% csrf_token %}
+    <label>Consulta:</label><br>
+    <textarea name="question" placeholder="¿Qué habitaciones dobles hay libres del 12 al 14 de octubre?">{{question}}</textarea><br><br>
+    <button type="submit">Consultar</button>
+  </form>
+
+  {% if error %}<div class="error">Error: {{ error }}</div>{% endif %}
+
+  {% if sql %}
+    <p><strong>SQL generado:</strong><br><code>{{ sql }}</code></p>
+  {% endif %}
+
+  {% if rows %}
+    <h3>Resultados</h3>
+    <table>
+      <thead>
+        <tr>{% for h in rows.0.keys %}<th>{{ h }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>{% for v in r.values %}<td>{{ v }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</body>
+</html>

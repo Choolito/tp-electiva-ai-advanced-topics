@@ -11,10 +11,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os  # Import necesario para os.getenv y construir rutas
+from dotenv import load_dotenv  # Carga variables de entorno desde .env
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+# Cargar variables de entorno si existe archivo .env en la raíz del proyecto
+load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -37,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "nl_sql_agent"
 ]
 
 MIDDLEWARE = [
@@ -120,3 +125,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#Configuración de Gemini, tambien de la ruta de la db
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+MODEL_GEMINI   = os.getenv("MODEL_GEMINI", "gemini-1.5-flash")
+DB_URL         = os.getenv("DB_URL", f"sqlite:///{(BASE_DIR / 'db' / 'hotel.db').as_posix()}")

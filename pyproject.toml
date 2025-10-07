@@ -10,6 +10,7 @@ dependencies = [
     "langchain>=0.3.27",
     "langchain-community>=0.3.30",
     "langchain-google-genai>=2.0.10",
+    "load-dotenv>=0.1.0",
     "python-dotenv>=1.1.1",
     "sqlalchemy>=2.0.43",
 ]
