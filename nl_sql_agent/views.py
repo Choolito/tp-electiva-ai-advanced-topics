@@ -1,23 +1,33 @@
+# agent/views.py
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
-from .chains import run_nl_to_sql, build_db
-from .safety import is_safe_sql, enforce_limit
+import logging
+
+from .chains import run_nl_to_sql
+
+logger = logging.getLogger(__name__)
 
 @csrf_protect
-def ask_view(request):
+def ask_view(request): 
+    """Vista principal para formular preguntas NL y ver el SQL/resultados.
+
+    Ahora la validación de seguridad y el LIMIT se realizan dentro de run_nl_to_sql,
+    por lo que eliminamos la lógica duplicada aquí.
+    """
     context = {"question": "", "sql": "", "rows": [], "error": ""}
     if request.method == "POST":
-        q = request.POST.get("question", "").strip()
-        context["question"] = q
-        try:
-            sql = run_nl_to_sql(q)            # <- ahora solo genera y limpia
-            if not is_safe_sql(sql):
-                context["error"] = "La consulta generada no es segura (solo SELECT)."
-            else:
-                final_sql = enforce_limit(sql) # <- aseguramos LIMIT
-                context["sql"] = final_sql
-                db = build_db()
-                context["rows"] = db.run(final_sql)  # <- ejecutamos recién acá
-        except Exception as e:
-            context["error"] = str(e)
+        question = request.POST.get("question", "").strip()
+        context["question"] = question
+        if question:
+            try:
+                sql, rows = run_nl_to_sql(question)
+                context["sql"] = sql
+                context["rows"] = rows
+            except Exception as e:
+                # Log interno y mensaje simple al usuario
+                logger.warning("Fallo al procesar pregunta '%s': %s", question, e)
+                context["error"] = str(e)
+        else:
+            context["error"] = "La pregunta no puede estar vacía."
+    # Ajuste: el template existente en la app es 'nl_sql_agent/ask.html'
     return render(request, "nl_sql_agent/ask.html", context)
