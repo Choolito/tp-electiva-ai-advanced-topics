@@ -12,6 +12,9 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import create_sql_query_chain
 import os, re, logging
 from .safety import is_safe_sql, enforce_limit
+import json
+from sqlalchemy import text
+from langchain_core.prompts import ChatPromptTemplate
 
 logger = logging.getLogger(__name__)
 
@@ -142,74 +145,47 @@ def run_nl_to_sql(question: str, *, apply_limit: bool = True, safe_mode: bool = 
 
     return final_sql, rows
 
+def _sample_result_for_nlg(db, sql: str, sample_limit: int = 50):
+    """Reejecuta el SELECT para obtener columnas + hasta sample_limit filas como dicts."""
+    engine = db._engine  # expuesto por SQLDatabase
+    with engine.connect() as conn:
+        result = conn.execute(text(sql))
+        cols = list(result.keys())
+        # mappings() nos da dicts por fila; acotamos para no inflar el prompt
+        sample = result.mappings().fetchmany(sample_limit)
+        rows = [dict(r) for r in sample]
+    return cols, rows
 
-def _format_rows_for_prompt(rows, max_rows: int = 20):
-    """Devuelve una representación tabular simple (markdown) de un subconjunto de filas.
-    Asume que cada fila es iterable. No tenemos nombres de columnas aquí, así que usamos índices.
+def run_nl_sql_and_answer(question: str):
     """
-    if not rows:
-        return "(sin filas)"
-    subset = rows[:max_rows]
-    headers = [f"col{i+1}" for i in range(len(subset[0]))]
-    out = ["| " + " | ".join(headers) + " |", "| " + " | ".join(["---"] * len(headers)) + " |"]
-    for r in subset:
-        out.append("| " + " | ".join(str(v) for v in r) + " |")
-    if len(rows) > max_rows:
-        out.append(f"(Mostrando {max_rows} de {len(rows)} filas)")
-    return "\n".join(out)
-
-
-def generate_nl_answer(question: str, sql: str, rows, *, language: str = "es", max_rows_in_prompt: int = 20) -> str:
-    """Genera una respuesta en lenguaje natural a partir de la pregunta original,
-    el SQL ejecutado y las filas devueltas.
-
-    No vuelve a tocar la base: sólo usa datos ya obtenidos.
+    Flujo completo: NL -> SQL -> ejecutar -> NLG.
+    Devuelve (sql, rows_originales, answer_text).
+    - NO modifica run_nl_to_sql: lo reutiliza tal cual lo tenés.
     """
+    # 1) Generamos SQL y ejecutamos (tu lógica actual)
+    sql, rows = run_nl_to_sql(question)
+
+    # 2) Reejecutamos para obtener columnas + filas como dicts (mejor para el LLM)
+    db = build_db()
+    cols, rows_dicts = _sample_result_for_nlg(db, sql, sample_limit=50)
+
+    # 3) Pedimos la respuesta en español usando SOLO esos datos
     llm = build_llm()
-    if not rows:
-        base_prompt = (
-            f"Pregunta original: {question}\n"
-            f"SQL ejecutado: {sql}\n"
-            "La consulta no devolvió filas. Explica brevemente esto al usuario en el idioma solicitado."
-        )
-    else:
-        table_md = _format_rows_for_prompt(rows, max_rows=max_rows_in_prompt)
-        base_prompt = (
-            f"Eres un analista de datos. Responde de forma clara y concisa en idioma '{language}'.\n"
-            f"Pregunta original: {question}\n"
-            f"SQL utilizado: {sql}\n"
-            f"Filas devueltas: {len(rows)} (se muestra un subconjunto si es grande).\n"
-            f"Muestra de resultados en tabla markdown:\n{table_md}\n\n"
-            "Genera una explicación breve enfocada en responder la pregunta. Si hay conteos o agregaciones, menciona los valores clave."
-        )
-    try:
-        answer_msg = llm.invoke(base_prompt)
-        # ChatGoogleGenerativeAI suele devolver un objeto con .content (lista) o .text
-        if hasattr(answer_msg, "content") and isinstance(answer_msg.content, list):
-            # Extraer texto plano de content
-            parts = []
-            for c in answer_msg.content:
-                if isinstance(c, dict) and c.get("type") == "text":
-                    parts.append(c.get("text", ""))
-                elif isinstance(c, str):
-                    parts.append(c)
-            answer = "\n".join(p for p in parts if p).strip()
-        elif hasattr(answer_msg, "text"):
-            answer = answer_msg.text.strip()
-        else:
-            answer = str(answer_msg)
-        return answer
-    except Exception as e:
-        logger.warning("Fallo al generar respuesta NL: %s", e)
-        return "(No se pudo generar la explicación en lenguaje natural)"
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "Sos un analista de datos. Respondé en español, breve y factual."),
+        ("system", "Usá EXCLUSIVAMENTE los datos provistos. Si no hay datos, respondé: 'No se encontraron resultados'. No inventes."),
+        ("human",
+         "Pregunta original:\n{q}\n\nSQL ejecutado:\n{sql}\n\nColumnas:\n{cols}\n\nPrimeras filas (JSON, máx 50):\n{rows_json}\n\n"
+         "Indicaciones:\n- Si hay números, incluí totales o conteos visibles.\n"
+         "- Si no hay filas, respondé solo 'No se encontraron resultados'.\n"
+         "- Si son muchas filas similares, resumí por grupos relevantes.")
+    ])
+    answer = (prompt | llm).invoke({
+        "q": question,
+        "sql": sql,
+        "cols": ", ".join(cols) if cols else "(sin columnas)",
+        "rows_json": json.dumps(rows_dicts, ensure_ascii=False)
+    })
+    answer_text = getattr(answer, "content", str(answer))
 
-
-def run_nl_to_sql_with_answer(question: str, *, apply_limit: bool = True, safe_mode: bool = True, language: str = "es"):
-    """Conveniencia: combina generación de SQL, ejecución y respuesta NL.
-
-    Devuelve dict con keys: sql, rows, answer.
-    """
-    sql, rows = run_nl_to_sql(question, apply_limit=apply_limit, safe_mode=safe_mode)
-    answer = generate_nl_answer(question, sql, rows, language=language)
-    return {"sql": sql, "rows": rows, "answer": answer}
-
+    return sql, rows, answer_text

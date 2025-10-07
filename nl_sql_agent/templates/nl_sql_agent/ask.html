@@ -24,32 +24,13 @@
   {% if error %}<div class="error">Error: {{ error }}</div>{% endif %}
 
   {% if sql %}
+  {% if answer %}
+  <h3>Respuesta</h3>
+  <p>{{ answer }}</p>
   <p><strong>SQL generado:</strong><br><code>{{ sql }}</code></p>
 {% endif %}
 
-{% if rows %}
-  <h3>Resultados</h3>
-  <table>
-    <thead>
-      <tr>
-        {# Si la vista no provee 'columns', derivamos encabezados genéricos de la primera fila #}
-        {% if columns %}
-          {% for c in columns %}<th>{{ c }}</th>{% endfor %}
-        {% else %}
-          {% if rows.0 %}
-            {% for _ in rows.0 %}<th>Col {{ forloop.counter }}</th>{% endfor %}
-          {% endif %}
-        {% endif %}
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in rows %}
-        <tr>
-          {% for v in r %}<td>{{ v }}</td>{% endfor %}
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
 {% elif sql and not error %}
   <p>No se encontraron resultados.</p>
 {% endif %}
