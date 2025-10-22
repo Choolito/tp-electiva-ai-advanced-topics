@@ -1,0 +1,12 @@
+# Mantener scripts en formato LF (para Docker y Linux)
+*.sh text eol=lf
+
+# Mantener archivos de código Python y HTML normales
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+
+# Permitir CRLF solo en archivos de texto plano de Windows (si algún día tuvieras)
+*.bat text eol=crlf
+*.cmd text eol=crlf

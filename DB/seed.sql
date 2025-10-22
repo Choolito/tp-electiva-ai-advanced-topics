@@ -1,10 +1,15 @@
 /* =========================================================
-   SEED COMPLETO — 20 FILAS POR TABLA (SQLite)
+   SEED COMPLETO — CON ENRIQUECIMIENTOS
+   - Tablas base: 20 filas cada una (como tu seed original)
+   - Más combinaciones:
+       * reservas con 2 habitaciones (RH ids 21–26)
+       * más personas por reserva_habitacion (RHP ids 21–32)
+       * pedidos extra (ids 21–24) y más items (ids 21–40)
    ========================================================= */
 
--- =======================
--- HABITACION (20)
--- =======================
+/* =======================
+   HABITACION (20)
+   ======================= */
 INSERT OR IGNORE INTO habitacion (id, numero, piso, tipo, capacidad, estado, frigobar, jacuzzi, balcon, precio) VALUES
 (1,'101',1,'single',1,'activa',0,0,0,18000),
 (2,'102',1,'doble',2,'activa',1,0,0,28000),
@@ -27,9 +32,9 @@ INSERT OR IGNORE INTO habitacion (id, numero, piso, tipo, capacidad, estado, fri
 (19,'503',5,'single',1,'activa',0,0,0,20500),
 (20,'504',5,'doble',2,'activa',1,0,1,34000);
 
--- =======================
--- PERSONA (20)
--- =======================
+/* =======================
+   PERSONA (20)
+   ======================= */
 INSERT OR IGNORE INTO persona (id, nombre, apellido, doc_tipo, doc_num, tel, email) VALUES
 (1,'Juan','Pérez','DNI','10000001','+54 111 0001','juan1@example.com'),
 (2,'Ana','García','DNI','10000002','+54 111 0002','ana2@example.com'),
@@ -52,10 +57,10 @@ INSERT OR IGNORE INTO persona (id, nombre, apellido, doc_tipo, doc_num, tel, ema
 (19,'Elena','Paz','DNI','10000019','+54 111 0019','elena19@example.com'),
 (20,'Santiago','León','DNI','10000020','+54 111 0020','santiago20@example.com');
 
--- =======================
--- RESERVA (20)
--- estados: pendiente, confirmada, checkin, checkout, cancelada
--- =======================
+/* =======================
+   RESERVA (20)
+   estados: pendiente, confirmada, checkin, checkout, cancelada
+   ======================= */
 INSERT OR IGNORE INTO reserva (id, titular_persona_id, fecha_checkin, fecha_checkout, estado, canal, observaciones) VALUES
 (1,1,'2025-10-01','2025-10-03','confirmada','web',''),
 (2,2,'2025-10-02','2025-10-05','pendiente','mostrador',''),
@@ -78,10 +83,10 @@ INSERT OR IGNORE INTO reserva (id, titular_persona_id, fecha_checkin, fecha_chec
 (19,19,'2025-10-29','2025-10-31','pendiente','mostrador',''),
 (20,20,'2025-10-30','2025-11-02','confirmada','web','');
 
--- =======================
--- RESERVA_HABITACION (20)
--- (una habitación por reserva en este seed)
--- =======================
+/* =======================
+   RESERVA_HABITACION (20 originales + 6 nuevas = 26)
+   (una habitación por reserva en la base original; añadimos multi-habitación)
+   ======================= */
 INSERT OR IGNORE INTO reserva_habitacion (id, reserva_id, habitacion_id, precio_noche_acordado, notas) VALUES
 (1,1,2,27000,''),
 (2,2,3,26000,''),
@@ -102,11 +107,18 @@ INSERT OR IGNORE INTO reserva_habitacion (id, reserva_id, habitacion_id, precio_
 (17,17,13,64000,''),
 (18,18,15,21000,''),
 (19,19,6,19000,''),
-(20,20,7,52000,'');
+(20,20,7,52000,''),
+-- nuevas multi-habitación
+(21,3,11,20000,'Acompañantes (single)'),
+(22,6,14,29500,'Grupo ampliado'),
+(23,8,4,18500,'Cercana a la 304'),
+(24,12,7,52000,'Familia'),
+(25,16,17,65000,'Evento especial'),
+(26,20,9,61000,'Grupo grande');
 
--- =======================
--- RESERVA_HABITACION_PERSONA (20)
--- =======================
+/* =======================
+   RESERVA_HABITACION_PERSONA (20 originales + 12 nuevas = 32)
+   ======================= */
 INSERT OR IGNORE INTO reserva_habitacion_persona (id, reserva_habitacion_id, persona_id) VALUES
 (1,1,1),
 (2,2,2),
@@ -127,11 +139,24 @@ INSERT OR IGNORE INTO reserva_habitacion_persona (id, reserva_habitacion_id, per
 (17,17,17),
 (18,18,18),
 (19,19,19),
-(20,20,20);
+(20,20,20),
+-- nuevas (más ocupantes por RH y ocupantes para RH nuevas)
+(21,3,4),     -- r3/hab 201: +Carlos (4)
+(22,6,7),     -- r6/hab 203: +Paula (7)
+(23,16,15),   -- r16/hab 301: +Agustina (15)
+(24,17,18),   -- r17/hab 401: +Federico (18)
+(25,20,19),   -- r20/hab 203: +Elena (19)
+(26,21,5),    -- RH=21 (r3, hab 303): Sofía (5)
+(27,21,2),    -- RH=21: Ana (2)
+(28,22,6),    -- RH=22 (r6, hab 402): Marcos (6)
+(29,23,8),    -- RH=23 (r8, hab 104): Diego (8)
+(30,24,12),   -- RH=24 (r12, hab 203): Nicolás (12)
+(31,25,16),   -- RH=25 (r16, hab 501): Tomás (16)
+(32,26,20);   -- RH=26 (r20, hab 301): Santiago (20)
 
--- =======================
--- PLATO (20)
--- =======================
+/* =======================
+   PLATO (20)
+   ======================= */
 INSERT OR IGNORE INTO plato (id, nombre, descripcion, precio, activo) VALUES
 (1,'Milanesa','Milanesa con guarnición',6000,1),
 (2,'Ravioles','Ravioles caseros',6500,1),
@@ -154,9 +179,9 @@ INSERT OR IGNORE INTO plato (id, nombre, descripcion, precio, activo) VALUES
 (19,'Fetuccine','Alfredo',6400,1),
 (20,'Wok de verduras','Salteado',5900,1);
 
--- =======================
--- GUARNICION (20)
--- =======================
+/* =======================
+   GUARNICION (20)
+   ======================= */
 INSERT OR IGNORE INTO guarnicion (id, nombre, precio, activa) VALUES
 (1,'Puré',1800,1),
 (2,'Ensalada mixta',1600,1),
@@ -179,10 +204,9 @@ INSERT OR IGNORE INTO guarnicion (id, nombre, precio, activa) VALUES
 (19,'Mix verdes',1600,1),
 (20,'Tomates asados',1900,1);
 
--- =======================
--- PEDIDO (20)
--- mitad asociados a habitación, mitad a mesa
--- =======================
+/* =======================
+   PEDIDO (20 originales + 4 nuevos = 24)
+   ======================= */
 INSERT OR IGNORE INTO pedido (id, fecha_hora, origen_tipo, mesa, reserva_habitacion_id, estado, observaciones) VALUES
 (1,  datetime('2025-10-01 20:15:00'), 'habitación', NULL, 1,  'PENDIENTE',''),
 (2,  datetime('2025-10-02 13:10:00'), 'mesa',       'A1', NULL, 'PAGADO',''),
@@ -203,37 +227,63 @@ INSERT OR IGNORE INTO pedido (id, fecha_hora, origen_tipo, mesa, reserva_habitac
 (17, datetime('2025-10-10 19:10:00'), 'habitación', NULL, 9,  'PAGADO',''),
 (18, datetime('2025-10-10 12:15:00'), 'mesa',       'D1', NULL, 'PAGADO',''),
 (19, datetime('2025-10-11 21:20:00'), 'habitación', NULL, 10, 'PENDIENTE',''),
-(20, datetime('2025-10-11 13:15:00'), 'mesa',       'D2', NULL, 'PAGADO','');
+(20, datetime('2025-10-11 13:15:00'), 'mesa',       'D2', NULL, 'PAGADO',''),
+-- nuevos
+(21, datetime('2025-10-05 21:10:00'), 'habitación', NULL, 21, 'PAGADO',    'Cena liviana'),
+(22, datetime('2025-10-12 13:25:00'), 'mesa',       'E1', NULL, 'PAGADO',  'Almuerzo de paso'),
+(23, datetime('2025-10-24 20:40:00'), 'habitación', NULL, 25, 'PENDIENTE', 'Celebración'),
+(24, datetime('2025-10-31 12:35:00'), 'habitación', NULL, 26, 'PAGADO',    'Check-in almuerzo');
 
--- =======================
--- PEDIDO_ITEM (20)
--- alterno plato/guarnición; cuando no aplica, el otro es NULL
--- =======================
+/* =======================
+   PEDIDO_ITEM (20 originales + 20 nuevos = 40)
+   ======================= */
 INSERT OR IGNORE INTO pedido_item (id, pedido_id, plato_id, guarnicion_id, comentario, precio_plato, precio_guarnicion) VALUES
-(1, 1, 1, NULL,'', 6000, NULL),
-(2, 1, NULL, 3,'', NULL, 1900),
-(3, 2, 8, NULL,'sin cebolla', 5800, NULL),
-(4, 3, 2, NULL,'al dente', 6500, NULL),
-(5, 4, NULL, 1,'', NULL, 1800),
-(6, 5, 11, NULL,'poco sal', 7700, NULL),
-(7, 6, 7, NULL,'mitad muzza', 5400, NULL),
-(8, 7, NULL, 5,'', NULL, 2200),
-(9, 8, 10, NULL,'', 6100, NULL),
-(10, 9, NULL, 2,'', NULL, 1600),
-(11,10, 5, NULL,'jugoso', 8900, NULL),
-(12,11, NULL, 4,'', NULL, 1500),
-(13,12, 14, NULL,'', 6800, NULL),
-(14,13, NULL, 6,'', NULL, 2000),
-(15,14, 19, NULL,'', 6400, NULL),
-(16,15, 6, NULL,'', 7200, NULL),
-(17,16, NULL, 9,'', NULL, 2400),
-(18,17, 3, NULL,'', 5200, NULL),
-(19,18, 16, NULL,'', 4500, NULL),
-(20,19, NULL, 14,'', NULL, 2050);
+(1, 1, 1,   NULL,'',         6000, NULL),
+(2, 1, NULL, 3,  '',         NULL, 1900),
+(3, 2, 8,   NULL,'sin cebolla', 5800, NULL),
+(4, 3, 2,   NULL,'al dente', 6500, NULL),
+(5, 4, NULL, 1,  '',         NULL, 1800),
+(6, 5, 11,  NULL,'poco sal', 7700, NULL),
+(7, 6, 7,   NULL,'mitad muzza', 5400, NULL),
+(8, 7, NULL, 5,  '',         NULL, 2200),
+(9, 8, 10,  NULL,'',         6100, NULL),
+(10, 9, NULL, 2,  '',        NULL, 1600),
+(11,10, 5,  NULL,'jugoso',   8900, NULL),
+(12,11, NULL, 4,  '',        NULL, 1500),
+(13,12, 14,  NULL,'',        6800, NULL),
+(14,13, NULL, 6,  '',        NULL, 2000),
+(15,14, 19,  NULL,'',        6400, NULL),
+(16,15, 6,   NULL,'',        7200, NULL),
+(17,16, NULL, 9,  '',        NULL, 2400),
+(18,17, 3,   NULL,'',        5200, NULL),
+(19,18, 16,  NULL,'',        4500, NULL),
+(20,19, NULL, 14, '',        NULL, 2050),
+-- nuevos (más ítems en pedidos existentes)
+(21, 1, 18,  NULL,'',        6200, NULL),
+(22, 3, NULL, 9,  '',        NULL, 2400),
+(23, 5, 6,   NULL,'sin queso extra', 7200, NULL),
+(24, 7, 10,  NULL,'',        6100, NULL),
+(25, 9, 12,  NULL,'',        9900, NULL),
+(26,11, NULL, 15, '',        NULL, 2500),
+(27,13, 1,   NULL,'',        6000, NULL),
+(28,15, NULL, 7,  '',        NULL, 2300),
+(29,17, 5,   NULL,'a punto', 8900, NULL),
+(30,19, 14,  NULL,'',        6800, NULL),
+-- nuevos (para pedidos 21–24)
+(31,21, 2,   NULL,'al dente', 6500, NULL),
+(32,21, NULL, 5,  '',         NULL, 2200),
+(33,22, 8,   NULL,'sin cebolla', 5800, NULL),
+(34,22, NULL, 1,  '',         NULL, 1800),
+(35,22, 20,  NULL,'',         5900, NULL),
+(36,23, 12,  NULL,'',         9900, NULL),
+(37,23, 6,   NULL,'',         7200, NULL),
+(38,23, NULL, 9,  '',         NULL, 2400),
+(39,24, 3,   NULL,'',         5200, NULL),
+(40,24, NULL, 14, '',         NULL, 2050);
 
--- =======================
--- INSUMO (20)
--- =======================
+/* =======================
+   INSUMO (20)
+   ======================= */
 INSERT OR IGNORE INTO insumo (id, nombre, unidad, stock_min) VALUES
 (1,'Harina 0000','kg',10),
 (2,'Pechuga de pollo','kg',8),
