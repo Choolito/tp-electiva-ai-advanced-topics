@@ -189,3 +189,5 @@ def run_nl_sql_and_answer(question: str):
     answer_text = getattr(answer, "content", str(answer))
 
     return sql, rows, answer_text
+
+    

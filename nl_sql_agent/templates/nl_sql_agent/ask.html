@@ -10,6 +10,24 @@
     th, td { border: 1px solid #ddd; padding: 6px 8px; }
     code { background: #f3f3f3; padding: 2px 4px; }
     .error { color: #b00020; margin-top: 1rem; }
+
+    /* Ventana Markdown */
+    .md-window{
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+      background: #fafafa;
+      max-height: 420px;
+      overflow: auto;
+      font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans";
+      margin-top: 1rem;
+    }
+    .md-window h1, .md-window h2, .md-window h3 { margin: .6em 0 .3em }
+    .md-window p, .md-window ul, .md-window ol { margin: .4em 0 }
+    .md-window code { background:#f1f5f9; padding:2px 5px; border-radius:6px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
+    .md-window pre code { display:block; padding:10px; overflow:auto }
+    .md-window table { border-collapse: collapse; width:100%; }
+    .md-window th, .md-window td { border:1px solid #e5e7eb; padding:6px 8px; text-align:left; }
   </style>
 </head>
 <body>
@@ -24,17 +42,38 @@
   {% if error %}<div class="error">Error: {{ error }}</div>{% endif %}
 
   {% if sql %}
-  {% if answer %}
-  <h3>Respuesta</h3>
-  <p>{{ answer }}</p>
-  <p><strong>SQL generado:</strong><br><code>{{ sql }}</code></p>
-{% endif %}
+    {% if answer %}
+      <h3>Respuesta</h3>
 
+      <!-- Ventana Markdown -->
+      <div class="md-window">
+        <!-- Fallback si el JS está deshabilitado: mostramos texto plano preservando saltos -->
+        <noscript><pre style="white-space: pre-wrap">{{ answer }}</pre></noscript>
+        <div id="md-output">Cargando…</div>
+      </div>
 
-{% elif sql and not error %}
-  <p>No se encontraron resultados.</p>
-{% endif %}
+      <!-- (Opcional) Mostrar/ocultar SQL generado -->
+      <details style="margin-top:12px;">
+        <summary>Ver SQL</summary>
+        <pre style="background:#111; color:#eee; padding:10px; border-radius:8px; overflow:auto">{{ sql }}</pre>
+      </details>
 
-
+      <!-- Librerías para render MD y sanitizar -->
+      <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+      <script>
+        // Tomamos el texto crudo (posible Markdown) escapado para JS
+        const raw = `{{ answer|escapejs }}`;
+        // Que los saltos de línea cuenten como <br>
+        marked.setOptions({ breaks: true });
+        // Parseamos a HTML y lo sanitizamos
+        const html = DOMPurify.sanitize(marked.parse(raw));
+        // Inyectamos en la ventana
+        document.getElementById('md-output').innerHTML = html;
+      </script>
+    {% else %}
+      <p>No se encontraron resultados.</p>
+    {% endif %}
+  {% endif %}
 </body>
 </html>
