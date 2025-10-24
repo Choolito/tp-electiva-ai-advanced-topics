@@ -51,7 +51,6 @@ def _strip_prefixes(s: str) -> str:
     """
     Elimina recursivamente prefijos verbosos comunes en respuestas de LLM que no son parte del SQL.
     """
-
     for p in _PREFIXES:
         if s.lower().startswith(p.lower()):
             return _strip_prefixes(s[len(p):].strip())  
@@ -160,7 +159,7 @@ def run_nl_sql_and_answer(question: str):
     """
     Flujo completo: NL -> SQL -> ejecutar -> NLG.
     Devuelve (sql, rows_originales, answer_text).
-    - NO modifica run_nl_to_sql: lo reutiliza tal cual lo tenés.
+    
     """
     sql, rows = run_nl_to_sql(question)
     db = build_db()

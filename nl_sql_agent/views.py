@@ -2,13 +2,15 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
 import logging
 
-# antes importabas run_nl_to_sql; ahora importá la nueva
 from .chains import run_nl_sql_and_answer
 
 logger = logging.getLogger(__name__)
 
 @csrf_protect
 def ask_view(request):
+    """Vista de Django que recibe una pregunta (POST), la convierte a SQL, ejecuta la consulta y renderiza
+    'nl_sql_agent/ask.html' con la pregunta, el SQL, las filas, la respuesta o un mensaje de error."""
+    
     context = {"question": "", "sql": "", "rows": [], "answer": "", "error": ""}
     if request.method == "POST":
         question = request.POST.get("question", "").strip()
