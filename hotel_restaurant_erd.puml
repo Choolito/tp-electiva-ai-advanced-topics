@@ -1,5 +1,5 @@
 @startuml
-' UML/ER with crow's foot style
+
 !theme plain
 hide methods
 hide stereotypes
