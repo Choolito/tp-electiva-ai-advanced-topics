@@ -1,0 +1,35 @@
+# --- Carpetas locales ---
+.venv/
+__pycache__/
+db/
+staticfiles/
+media/
+tmp/
+logs/
+
+# --- Archivos sensibles o innecesarios ---
+.env
+*.pyc
+*.pyo
+*.log
+*.sqlite3
+.DS_Store
+
+# --- Control de versiones ---
+.git
+.gitignore
+.github/
+.vscode/
+.idea/
+
+# --- Documentación o herramientas locales ---
+*.md
+*.bak
+*.swp
+*.zip
+*.tar
+*.gz
+
+# --- Docker / Compose secundarios ---
+docker-compose.yml
+render.yaml

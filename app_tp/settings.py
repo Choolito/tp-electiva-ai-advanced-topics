@@ -76,11 +76,17 @@ WSGI_APPLICATION = 'app_tp.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+DB_DIR = Path(os.getenv("DB_DIR", BASE_DIR / "DB"))
+DB_FILE = os.getenv("DB_FILE", "hotel.db")
+DB_PATH = DB_DIR / DB_FILE
+
+os.makedirs(DB_DIR, exist_ok=True)
+
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": DB_PATH,  # /app/DB/hotel.db
     }
 }
 
