@@ -1,11 +1,9 @@
 """Utilidades para convertir preguntas NL a SQL seguro y ejecutarlas.
-
 Incluye:
  - Cache de conexión a base y LLM para evitar sobrecarga.
  - Limpieza robusta del SQL generado por el modelo.
  - Validación de seguridad (solo SELECT) y aplicación de LIMIT.
 """
-
 from django.conf import settings
 from langchain_community.utilities import SQLDatabase
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -18,14 +16,16 @@ from langchain_core.prompts import ChatPromptTemplate
 
 logger = logging.getLogger(__name__)
 
-_DB = None          # cache de instancia SQLDatabase, para no instanciarla cada vez
-_LLM = None         # cache de LLM, para no instanciarlo cada vez
+_DB = None          
+_LLM = None         
 _SQL_BLOCK_RE = re.compile(r"```(?:sql)?\s*(.*?)```", re.IGNORECASE | re.DOTALL)
 _INLINE_CODE_RE = re.compile(r"`([^`]+)`")
 
 
+
+
 def build_db(): 
-    """Devuelve (cacheado) la instancia de SQLDatabase mapeando el schema."""
+    """Devuelve la instancia de SQLDatabase mapeando el schema."""
     global _DB
     if _DB is None:
         _DB = SQLDatabase.from_uri(settings.DB_URL)
@@ -33,7 +33,7 @@ def build_db():
 
 
 def build_llm():
-    """Devuelve (cacheado) el modelo LLM configurado (temperature=0 para estabilidad)."""
+    """Devuelve el modelo LLM configurado (temperature=0 para estabilidad)."""
     global _LLM
     if _LLM is None:
         os.environ["GOOGLE_API_KEY"] = settings.GEMINI_API_KEY or ""
@@ -48,9 +48,13 @@ _PREFIXES = [
 
 
 def _strip_prefixes(s: str) -> str:
+    """
+    Elimina recursivamente prefijos verbosos comunes en respuestas de LLM que no son parte del SQL.
+    """
+
     for p in _PREFIXES:
         if s.lower().startswith(p.lower()):
-            return _strip_prefixes(s[len(p):].strip())  # recursivo por si hay más de uno
+            return _strip_prefixes(s[len(p):].strip())  
     return s
 
 
@@ -115,10 +119,8 @@ def clean_sql(text: str) -> str:
     s = _single_statement(s)
     return s
 
-
 def run_nl_to_sql(question: str, *, apply_limit: bool = True, safe_mode: bool = True):
     """Genera y ejecuta SQL a partir de una pregunta.
-
     Devuelve (sql_final, rows).
     - Limpia el SQL del modelo.
     - Valida seguridad (solo SELECT) si safe_mode.
@@ -126,7 +128,6 @@ def run_nl_to_sql(question: str, *, apply_limit: bool = True, safe_mode: bool = 
     """
     if not question or not question.strip():
         raise ValueError("La pregunta está vacía")
-
     db = build_db()
     llm = build_llm()
     chain = create_sql_query_chain(llm, db)
@@ -147,11 +148,10 @@ def run_nl_to_sql(question: str, *, apply_limit: bool = True, safe_mode: bool = 
 
 def _sample_result_for_nlg(db, sql: str, sample_limit: int = 50):
     """Reejecuta el SELECT para obtener columnas + hasta sample_limit filas como dicts."""
-    engine = db._engine  # expuesto por SQLDatabase
+    engine = db._engine 
     with engine.connect() as conn:
         result = conn.execute(text(sql))
         cols = list(result.keys())
-        # mappings() nos da dicts por fila; acotamos para no inflar el prompt
         sample = result.mappings().fetchmany(sample_limit)
         rows = [dict(r) for r in sample]
     return cols, rows
@@ -162,14 +162,9 @@ def run_nl_sql_and_answer(question: str):
     Devuelve (sql, rows_originales, answer_text).
     - NO modifica run_nl_to_sql: lo reutiliza tal cual lo tenés.
     """
-    # 1) Generamos SQL y ejecutamos (tu lógica actual)
     sql, rows = run_nl_to_sql(question)
-
-    # 2) Reejecutamos para obtener columnas + filas como dicts (mejor para el LLM)
     db = build_db()
     cols, rows_dicts = _sample_result_for_nlg(db, sql, sample_limit=50)
-
-    # 3) Pedimos la respuesta en español usando SOLO esos datos
     llm = build_llm()
     prompt = ChatPromptTemplate.from_messages([
         ("system", "Sos un analista de datos. Respondé en español, breve y factual."),
