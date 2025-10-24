@@ -1,51 +1,74 @@
 # tp-electiva-ai-advanced-topics
 
-Este repositorio contiene un pequeño proyecto Django que integra un agente NL->SQL
-apoyado en modelos de Google Generative (Gemini) mediante LangChain.
+Este repositorio contiene un pequeño proyecto **Django** que integra un agente **NL → SQL** apoyado en modelos **Google Generative (Gemini)** mediante **LangChain**.
 
-Este README explica cómo configurar y levantar el proyecto localmente usando Docker
-y cómo preparar las variables de entorno necesarias.
+Este documento explica cómo configurar y levantar el proyecto localmente usando **Docker**, además de detallar las variables de entorno necesarias.
+
 
 ## Requisitos previos
 
-- Docker instalado en la máquina.
+Para poder ejecutar el proyecto correctamente, es necesario tener instalado:
+
+- **Docker**
+- **Docker Compose**
+
+Ambas herramientas deben estar disponibles en tu entorno de desarrollo.
+
 
 ## Pasos rápidos
 
-1. Copiar el archivo de ejemplo de variables de entorno:
+### 1. Crear archivo `.env`
 
-	 Copia `.env.example` a `.env` y rellena los valores necesarios:
+Primero, crear un nuevo archivo llamado `.env` en la raíz del proyecto y copiar dentro el contenido del archivo de ejemplo `.env.example`.
 
-	 En `.env` necesitas al menos:
-	 - `GEMINI_API_KEY`: tu API key para Gemini / Google Generative AI.
-	 - `MODEL_GEMINI`: modelo a usar (por ejemplo `gemini-2.5-flash` o `gemini-1.5-flash`).
-	 - `DB_URL`: URI de la base de datos (por defecto `sqlite:///./db/hotel.db`).
+```bash
+cp .env.example .env
+```
 
-	 El repositorio incluye un `.env.example` con valores de ejemplo.
+Luego, completar los valores necesarios según el entorno.  
+En particular, asegurarse de definir:
 
-2. Construir y levantar con Docker Compose
+- `GEMINI_API_KEY`: API key de Gemini / Google Generative AI.
+- `MODEL_GEMINI`: modelo a usar (por ejemplo `gemini-2.5-flash` o `gemini-1.5-flash`).
+- `DB_URL`: URI de la base de datos (por defecto `sqlite:///./db/hotel.db`).
 
-	Nos situamos en la raiz del repositorio y ejecutamos:
+El archivo `.env.example` incluye ejemplos de valores válidos.
 
-	 docker compose build
-	 docker compose up
+### 2. Construir y levantar los contenedores
 
-	 El servicio expone la app en el puerto `8000` (http://localhost:8000).
+Desde la raíz del repositorio, ejecutar los siguientes comandos:
 
-	 Nota: el `docker-compose.yml` del proyecto contiene una rutina que (si la variable
-	 `FORCE_DB_RELOAD` está en `1`) regenerará `DB/hotel.db` desde `DB/schema.sql` y
-	 `DB/seed.sql` cada vez que arranque el contenedor. Esto está pensado para desarrollo. Si se quiere trabajar sobre más datos, o se quiere alterar los datos para pruebas, solo se tiene que modificar desde `DB/seed.sql`, agregando, modificando, o sacando filas.
+```bash
+docker-compose build
+docker-compose up
+```
+
+La aplicación estará disponible en [http://localhost:8000](http://localhost:8000).
+
+El archivo `docker-compose.yml` incluye una rutina que, si la variable `FORCE_DB_RELOAD` está configurada en `1`, regenerará automáticamente la base `DB/hotel.db` a partir de `DB/schema.sql` y `DB/seed.sql` cada vez que se inicie el contenedor.  
+Esto está pensado para desarrollo.  
+Si se desea probar con más datos o modificar los existentes, se puede editar directamente `DB/seed.sql`.
 
 
 ## Uso del agente
 
-- Accedé a la ruta raíz (por defecto http://localhost:8000/) y verás un formulario para preguntar en
-	lenguaje natural. El agente generará una consulta SQL, la ejecutará contra la DB
-	y devolverá tanto la consulta como una explicación en lenguaje natural de los resultados.
+1. Acceder a [http://localhost:8000](http://localhost:8000)
+2. Ingresar una consulta en lenguaje natural (por ejemplo, “¿Qué reservas hay para hoy?”)
+3. El agente:
+   - Generará la consulta SQL correspondiente.
+   - La ejecutará contra la base de datos.
+   - Mostrará tanto la consulta como una explicación en texto natural.
 
 
 ## Problemas comunes
 
-- Si ves errores 404 del modelo (p.ej. `models/gemini-1.5-flash-latest is not found`),
-	actualiza `MODEL_GEMINI` en el `.env` a un modelo soportado (por ejemplo `gemini-2.5-flash`)
-	o ejecuta `list_models.py` para ver la lista de modelos disponibles.
+**Error 404 de modelo**  
+Ejemplo: `models/gemini-1.5-flash-latest is not found`
+
+Verificar el valor de `MODEL_GEMINI` en el archivo `.env` y asegurarse de usar un modelo disponible (por ejemplo `gemini-2.5-flash`).
+
+Para ver la lista de modelos disponibles, ejecutar:
+
+```bash
+python list_models.py
+```
