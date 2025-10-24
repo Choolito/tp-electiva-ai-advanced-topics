@@ -10,13 +10,11 @@ y cómo preparar las variables de entorno necesarias.
 
 - Docker instalado en la máquina.
 
-
 ## Pasos rápidos
 
 1. Copiar el archivo de ejemplo de variables de entorno:
 
 	 Copia `.env.example` a `.env` y rellena los valores necesarios:
-
 
 	 En `.env` necesitas al menos:
 	 - `GEMINI_API_KEY`: tu API key para Gemini / Google Generative AI.
@@ -31,14 +29,12 @@ y cómo preparar las variables de entorno necesarias.
 
 	 docker compose build
 	 docker compose up
-	
 
 	 El servicio expone la app en el puerto `8000` (http://localhost:8000).
 
 	 Nota: el `docker-compose.yml` del proyecto contiene una rutina que (si la variable
 	 `FORCE_DB_RELOAD` está en `1`) regenerará `DB/hotel.db` desde `DB/schema.sql` y
 	 `DB/seed.sql` cada vez que arranque el contenedor. Esto está pensado para desarrollo. Si se quiere trabajar sobre más datos, o se quiere alterar los datos para pruebas, solo se tiene que modificar desde `DB/seed.sql`, agregando, modificando, o sacando filas.
-
 
 
 ## Uso del agente
