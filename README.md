@@ -27,7 +27,8 @@ y cómo preparar las variables de entorno necesarias.
 
 2. Construir y levantar con Docker Compose
 
-	 
+	Nos situamos en la raiz del repositorio y ejecutamos:
+
 	 docker compose build
 	 docker compose up
 	
