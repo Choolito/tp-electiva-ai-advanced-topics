@@ -1,0 +1,30 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hotel_ai
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      FORCE_DB_RELOAD: "1"
+      # Opcional, pero consistente con settings:
+      DB_DIR: /app/DB
+      DB_FILE: hotel.db
+    volumes:
+      - ./DB:/app/DB          
+    restart: unless-stopped
+    command: >
+      bash -c "
+      set -e;
+      mkdir -p DB;
+      if [ \"$FORCE_DB_RELOAD\" = \"1\" ]; then
+          echo '⚙️  Regenerando base de datos...';
+          rm -f DB/hotel.db;
+          sqlite3 DB/hotel.db < DB/schema.sql;
+          sqlite3 DB/hotel.db < DB/seed.sql;
+      fi;
+      python manage.py runserver 0.0.0.0:8000
+      "

@@ -10,9 +10,9 @@ CREATE TABLE IF NOT EXISTS habitacion (
   tipo TEXT,                    -- single, doble, triple, cuadruple
   capacidad INTEGER,
   estado TEXT DEFAULT 'activa',
-  frigobar INTEGER DEFAULT 0,   -- bool 0/1
-  jacuzzi  INTEGER DEFAULT 0,   -- bool 0/1
-  balcon   INTEGER DEFAULT 0,   -- bool 0/1
+  frigobar INTEGER DEFAULT 0,   
+  jacuzzi  INTEGER DEFAULT 0,   
+  balcon   INTEGER DEFAULT 0,   
   precio NUMERIC
 );
 
@@ -57,9 +57,6 @@ CREATE TABLE IF NOT EXISTS reserva_habitacion_persona (
   FOREIGN KEY (persona_id) REFERENCES persona(id)
 );
 
-/* =====================
-   Correspondientes al sector restaurant
-   ===================== */
 CREATE TABLE IF NOT EXISTS plato (
   id INTEGER PRIMARY KEY,
   nombre TEXT,
@@ -93,16 +90,13 @@ CREATE TABLE IF NOT EXISTS pedido_item (
   plato_id INTEGER,                 -- nullable
   guarnicion_id INTEGER,            -- nullable
   comentario TEXT,
-  precio_plato NUMERIC,             -- para guardar el precio del momento
-  precio_guarnicion NUMERIC,        -- para guardar el precio del momento
+  precio_plato NUMERIC,             
+  precio_guarnicion NUMERIC,        
   FOREIGN KEY (pedido_id) REFERENCES pedido(id),
   FOREIGN KEY (plato_id) REFERENCES plato(id),
   FOREIGN KEY (guarnicion_id) REFERENCES guarnicion(id)
 );
 
-/* =====================
-   Corresponde a la parte de stock, puede ser eliminado.
-   ===================== */
 CREATE TABLE IF NOT EXISTS insumo (
   id INTEGER PRIMARY KEY,
   nombre TEXT,
